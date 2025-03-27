@@ -43,4 +43,5 @@ jobs:
     - name: Run RuboCop
       run: |
         cd pylon-api
-        bundle exec rubocop 
+        bundle install
+        bundle exec rubocop --config .rubocop.yml 
