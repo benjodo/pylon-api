@@ -13,6 +13,7 @@ AllCops:
     - 'Gemfile'
     - 'Rakefile'
     - '*.gemspec'
+    - 'vendor/**/*'
   DisabledByDefault: true
 
 Style/Documentation:
