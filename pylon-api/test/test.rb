@@ -1,13 +1,15 @@
 #!/usr/bin/env ruby
-require 'bundler/setup'
-require 'pylon'
+# frozen_string_literal: true
 
-client = Pylon::Client.new(api_key: ENV['PYLON_API_KEY'])
+require "bundler/setup"
+require "pylon"
+
+client = Pylon::Client.new(api_key: ENV.fetch("PYLON_API_KEY", nil))
 
 # Test the API
 begin
   me = client.get_current_user
   puts "Successfully connected as: #{me['email']}"
-rescue => e
+rescue StandardError => e
   puts "Error: #{e.message}"
-end 
+end

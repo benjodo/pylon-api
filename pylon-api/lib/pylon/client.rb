@@ -120,7 +120,7 @@ module Pylon
     def list_issues(start_time:, end_time:, page: 1, per_page: 20, **filters)
       raise ArgumentError, "start_time is required" unless start_time
       raise ArgumentError, "end_time is required" unless end_time
-      
+
       get("/issues", query: filters.merge(
         start_time: start_time,
         end_time: end_time,
@@ -324,7 +324,7 @@ module Pylon
       case response.status
       when 200..299
         data = response.body
-        data = data['data'] if data.is_a?(Hash) && data.key?('data')
+        data = data["data"] if data.is_a?(Hash) && data.key?("data")
         [data, response]
       when 401
         raise AuthenticationError, parse_error_message(response)
@@ -343,7 +343,7 @@ module Pylon
     # @return [String] Error message
     def parse_error_message(response)
       if response.body.is_a?(Hash)
-        response.body['errors']&.first || response.body['error'] || "HTTP #{response.status}"
+        response.body["errors"]&.first || response.body["error"] || "HTTP #{response.status}"
       else
         "HTTP #{response.status}"
       end

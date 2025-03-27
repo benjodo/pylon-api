@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "simplecov"
 SimpleCov.start do
   add_filter "/spec/"
@@ -36,7 +38,7 @@ def stub_pylon_request(method, path, response_body: {}, query: {}, headers: {}, 
   }
 
   # Move rate limit headers from request to response headers
-  ["x-rate-limit-limit", "x-rate-limit-remaining", "x-rate-limit-reset"].each do |header|
+  %w[x-rate-limit-limit x-rate-limit-remaining x-rate-limit-reset].each do |header|
     if headers[header]
       response_headers[header] = headers[header]
       headers.delete(header)

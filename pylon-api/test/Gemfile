@@ -1,4 +1,6 @@
-source 'https://rubygems.org'
+# frozen_string_literal: true
+
+source "https://rubygems.org"
 
 # Use the local version of the gem
-gem 'pylon-api', path: '../' 
+gem "pylon-api", path: "../"

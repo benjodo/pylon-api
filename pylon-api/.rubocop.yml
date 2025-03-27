@@ -1,31 +1,87 @@
+require:
+  - rubocop-rake
+  - rubocop-rspec
+
+inherit_from: []
+
 AllCops:
-  TargetRubyVersion: 2.7
+  TargetRubyVersion: 3.0
   NewCops: enable
+  Exclude:
+    - 'bin/**/*'
+    - 'tmp/**/*'
+    - 'Gemfile'
+    - 'Rakefile'
+    - '*.gemspec'
+    - 'vendor/**/*'
+  DisabledByDefault: true
+
+Style/Documentation:
+  Enabled: false
 
 Style/StringLiterals:
   Enabled: true
   EnforcedStyle: double_quotes
 
-Style/Documentation:
-  Enabled: true
-
 Layout/LineLength:
+  Enabled: true
   Max: 120
 
+Metrics/ClassLength:
+  Enabled: true
+  Max: 200
+
+Metrics/MethodLength:
+  Enabled: true
+  Max: 25
+
+Metrics/AbcSize:
+  Enabled: true
+  Max: 30
+
+Metrics/CyclomaticComplexity:
+  Enabled: true
+  Max: 15
+
+Metrics/PerceivedComplexity:
+  Enabled: true
+  Max: 15
+
 Metrics/BlockLength:
+  Enabled: true
   Exclude:
     - 'spec/**/*'
     - '*.gemspec'
+    - 'Rakefile'
+    - 'lib/tasks/**/*'
 
-Metrics/MethodLength:
-  Max: 20
-
-Metrics/AbcSize:
-  Max: 20
-
-Style/FrozenStringLiteralComment:
+Metrics/ParameterLists:
   Enabled: true
-  EnforcedStyle: always
+  Max: 6
 
-Gemspec/RequiredRubyVersion:
-  Enabled: true 
+Naming/AccessorMethodName:
+  Enabled: false
+
+RSpec/MultipleMemoizedHelpers:
+  Enabled: true
+  Max: 8
+
+RSpec/NestedGroups:
+  Enabled: true
+  Max: 4
+
+RSpec/PredicateMatcher:
+  Enabled: false
+
+RSpec/Capybara:
+  Enabled: false
+
+RSpec/FactoryBot:
+  Enabled: false
+
+RSpec/MultipleExpectations:
+  Enabled: false
+
+RSpec/ExampleLength:
+  Enabled: true
+  Max: 10 
