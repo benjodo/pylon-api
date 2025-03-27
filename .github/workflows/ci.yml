@@ -40,12 +40,7 @@ jobs:
         bundler-cache: true
         working-directory: ./pylon-api
     
-    - name: Install RuboCop
-      run: |
-        cd pylon-api
-        gem install rubocop
-    
     - name: Run RuboCop
       run: |
         cd pylon-api
-        rubocop 
+        bundle exec rubocop 
