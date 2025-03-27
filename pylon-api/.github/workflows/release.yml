@@ -17,18 +17,18 @@ jobs:
       with:
         ruby-version: '3.3'
         bundler-cache: true
-        working-directory: ./pylon-ruby
+        working-directory: ./pylon-api
     
     - name: Build gem
       run: |
-        cd pylon-ruby
+        cd pylon-api
         gem build *.gemspec
     
     - name: Publish to RubyGems
       env:
         RUBYGEMS_API_KEY: ${{ secrets.RUBYGEMS_API_KEY }}
       run: |
-        cd pylon-ruby
+        cd pylon-api
         mkdir -p $HOME/.gem
         echo -e "---\n:rubygems_api_key: ${RUBYGEMS_API_KEY}" > $HOME/.gem/credentials
         chmod 0600 $HOME/.gem/credentials

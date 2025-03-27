@@ -21,11 +21,11 @@ jobs:
       with:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
-        working-directory: ./pylon-ruby
+        working-directory: ./pylon-api
     
     - name: Run tests
       run: |
-        cd pylon-ruby
+        cd pylon-api
         bundle exec rake spec
       
   lint:
@@ -38,14 +38,14 @@ jobs:
       with:
         ruby-version: '3.3'
         bundler-cache: true
-        working-directory: ./pylon-ruby
+        working-directory: ./pylon-api
     
     - name: Install RuboCop
       run: |
-        cd pylon-ruby
+        cd pylon-api
         gem install rubocop
     
     - name: Run RuboCop
       run: |
-        cd pylon-ruby
+        cd pylon-api
         rubocop 
