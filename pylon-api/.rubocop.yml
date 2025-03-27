@@ -13,32 +13,41 @@ AllCops:
     - 'Gemfile'
     - 'Rakefile'
     - '*.gemspec'
+  DisabledByDefault: true
 
 Style/Documentation:
   Enabled: false
 
 Style/StringLiterals:
+  Enabled: true
   EnforcedStyle: double_quotes
 
 Layout/LineLength:
+  Enabled: true
   Max: 120
 
 Metrics/ClassLength:
+  Enabled: true
   Max: 200
 
 Metrics/MethodLength:
+  Enabled: true
   Max: 25
 
 Metrics/AbcSize:
+  Enabled: true
   Max: 30
 
 Metrics/CyclomaticComplexity:
+  Enabled: true
   Max: 15
 
 Metrics/PerceivedComplexity:
+  Enabled: true
   Max: 15
 
 Metrics/BlockLength:
+  Enabled: true
   Exclude:
     - 'spec/**/*'
     - '*.gemspec'
@@ -46,15 +55,18 @@ Metrics/BlockLength:
     - 'lib/tasks/**/*'
 
 Metrics/ParameterLists:
+  Enabled: true
   Max: 6
 
 Naming/AccessorMethodName:
   Enabled: false
 
 RSpec/MultipleMemoizedHelpers:
+  Enabled: true
   Max: 8
 
 RSpec/NestedGroups:
+  Enabled: true
   Max: 4
 
 RSpec/PredicateMatcher:
@@ -70,4 +82,5 @@ RSpec/MultipleExpectations:
   Enabled: false
 
 RSpec/ExampleLength:
+  Enabled: true
   Max: 10 
