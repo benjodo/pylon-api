@@ -12,5 +12,5 @@ module Pylon
 
   # Version string following SemVer
   # @return [String] The current version of the gem
-  VERSION = [MAJOR, MINOR, PATCH, PRE].compact.join('.')
+  VERSION = [MAJOR, MINOR, PATCH, PRE].compact.join(".")
 end

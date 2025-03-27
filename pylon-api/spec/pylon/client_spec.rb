@@ -35,27 +35,27 @@ RSpec.describe Pylon::Client do
     context "when rate limit is exceeded" do
       before do
         stub_pylon_request(:get, "/me",
-          status: 429,
-          response_body: rate_limit_response,
-          headers: auth_headers.merge(
-            "x-rate-limit-limit" => "100",
-            "x-rate-limit-remaining" => "0",
-            "x-rate-limit-reset" => (Time.now + 60).to_i.to_s
-          )
-        )
+                           status: 429,
+                           response_body: rate_limit_response,
+                           headers: auth_headers.merge(
+                             "x-rate-limit-limit" => "100",
+                             "x-rate-limit-remaining" => "0",
+                             "x-rate-limit-reset" => (Time.now + 60).to_i.to_s
+                           ))
       end
 
       it "raises ApiError with rate limit message" do
-        expect { client.get_current_user }.to raise_error(Pylon::ApiError, "Rate limit exceeded. Please try again in 60 seconds.")
+        expect do
+          client.get_current_user
+        end.to raise_error(Pylon::ApiError, "Rate limit exceeded. Please try again in 60 seconds.")
       end
     end
 
     context "when rate limit headers are present" do
       before do
         stub_pylon_request(:get, "/me",
-          response_body: { "id" => "user_1" },
-          headers: auth_headers.merge(rate_limit_headers)
-        )
+                           response_body: { "id" => "user_1" },
+                           headers: auth_headers.merge(rate_limit_headers))
       end
 
       it "includes rate limit information in response" do
@@ -72,10 +72,9 @@ RSpec.describe Pylon::Client do
 
       before do
         stub_pylon_request(:get, "/accounts",
-          response_body: accounts_data,
-          query: { page: 1, per_page: 20 },
-          headers: auth_headers.merge(rate_limit_headers)
-        )
+                           response_body: accounts_data,
+                           query: { page: 1, per_page: 20 },
+                           headers: auth_headers.merge(rate_limit_headers))
       end
 
       it "returns accounts list and response" do
@@ -91,9 +90,8 @@ RSpec.describe Pylon::Client do
 
       before do
         stub_pylon_request(:get, "/accounts/#{account_id}",
-          response_body: account_data,
-          headers: auth_headers.merge(rate_limit_headers)
-        )
+                           response_body: account_data,
+                           headers: auth_headers.merge(rate_limit_headers))
       end
 
       it "returns account details and response" do
@@ -111,9 +109,8 @@ RSpec.describe Pylon::Client do
 
       before do
         stub_pylon_request(:post, "/attachments",
-          response_body: attachment_data,
-          headers: auth_headers.merge(rate_limit_headers)
-        )
+                           response_body: attachment_data,
+                           headers: auth_headers.merge(rate_limit_headers))
       end
 
       it "creates an attachment" do
@@ -131,9 +128,8 @@ RSpec.describe Pylon::Client do
 
       before do
         stub_pylon_request(:post, "/contacts",
-          response_body: contact_response,
-          headers: auth_headers.merge(rate_limit_headers)
-        )
+                           response_body: contact_response,
+                           headers: auth_headers.merge(rate_limit_headers))
       end
 
       it "creates a contact" do
@@ -148,21 +144,22 @@ RSpec.describe Pylon::Client do
     describe "#list_issues" do
       let(:start_time) { "2024-03-14T00:00:00Z" }
       let(:end_time) { "2024-03-14T23:59:59Z" }
-      let(:issues_data) { [{ "id" => "1", "title" => "Test Issue", "state" => "open", "created_at" => "2024-03-14T12:00:00Z" }] }
+      let(:issues_data) do
+        [{ "id" => "1", "title" => "Test Issue", "state" => "open", "created_at" => "2024-03-14T12:00:00Z" }]
+      end
 
       context "with valid parameters" do
         before do
           stub_pylon_request(:get, "/issues",
-            response_body: issues_data,
-            query: {
-              start_time: start_time,
-              end_time: end_time,
-              page: 1,
-              per_page: 20,
-              status: "open"
-            },
-            headers: auth_headers.merge(rate_limit_headers)
-          )
+                             response_body: issues_data,
+                             query: {
+                               start_time: start_time,
+                               end_time: end_time,
+                               page: 1,
+                               per_page: 20,
+                               status: "open"
+                             },
+                             headers: auth_headers.merge(rate_limit_headers))
         end
 
         it "returns issues list and response" do
@@ -178,15 +175,15 @@ RSpec.describe Pylon::Client do
 
       context "with missing parameters" do
         it "raises ArgumentError when start_time is missing" do
-          expect {
+          expect do
             client.list_issues(end_time: end_time)
-          }.to raise_error(ArgumentError, "missing keyword: :start_time")
+          end.to raise_error(ArgumentError, "missing keyword: :start_time")
         end
 
         it "raises ArgumentError when end_time is missing" do
-          expect {
+          expect do
             client.list_issues(start_time: start_time)
-          }.to raise_error(ArgumentError, "missing keyword: :end_time")
+          end.to raise_error(ArgumentError, "missing keyword: :end_time")
         end
       end
     end
@@ -197,9 +194,8 @@ RSpec.describe Pylon::Client do
 
       before do
         stub_pylon_request(:post, "/issues",
-          response_body: issue_response,
-          headers: auth_headers.merge(rate_limit_headers)
-        )
+                           response_body: issue_response,
+                           headers: auth_headers.merge(rate_limit_headers))
       end
 
       it "creates an issue" do
@@ -223,9 +219,8 @@ RSpec.describe Pylon::Client do
 
       before do
         stub_pylon_request(:get, "/me",
-          response_body: user_data,
-          headers: auth_headers.merge(rate_limit_headers)
-        )
+                           response_body: user_data,
+                           headers: auth_headers.merge(rate_limit_headers))
       end
 
       it "returns current user details and response" do
@@ -257,10 +252,9 @@ RSpec.describe Pylon::Client do
 
       before do
         stub_pylon_request(:get, "/tags",
-          response_body: tags_data,
-          query: { page: 1, per_page: 20 },
-          headers: auth_headers.merge(rate_limit_headers)
-        )
+                           response_body: tags_data,
+                           query: { page: 1, per_page: 20 },
+                           headers: auth_headers.merge(rate_limit_headers))
       end
 
       it "returns tags list and response" do
@@ -283,9 +277,8 @@ RSpec.describe Pylon::Client do
 
       before do
         stub_pylon_request(:post, "/tags",
-          response_body: tag_response,
-          headers: auth_headers.merge(rate_limit_headers)
-        )
+                           response_body: tag_response,
+                           headers: auth_headers.merge(rate_limit_headers))
       end
 
       it "creates a tag and returns response" do
@@ -302,10 +295,9 @@ RSpec.describe Pylon::Client do
 
       before do
         stub_pylon_request(:get, "/teams",
-          response_body: teams_data,
-          query: { page: 1, per_page: 20 },
-          headers: auth_headers.merge(rate_limit_headers)
-        )
+                           response_body: teams_data,
+                           query: { page: 1, per_page: 20 },
+                           headers: auth_headers.merge(rate_limit_headers))
       end
 
       it "returns teams list and response" do
@@ -321,9 +313,8 @@ RSpec.describe Pylon::Client do
 
       before do
         stub_pylon_request(:post, "/teams",
-          response_body: team_response,
-          headers: auth_headers.merge(rate_limit_headers)
-        )
+                           response_body: team_response,
+                           headers: auth_headers.merge(rate_limit_headers))
       end
 
       it "creates a team and returns response" do
@@ -338,10 +329,9 @@ RSpec.describe Pylon::Client do
     describe "authentication errors" do
       before do
         stub_pylon_request(:get, "/me",
-          status: 401,
-          response_body: { "errors" => ["Invalid API key"] },
-          headers: auth_headers
-        )
+                           status: 401,
+                           response_body: { "errors" => ["Invalid API key"] },
+                           headers: auth_headers)
       end
 
       it "raises AuthenticationError" do
@@ -352,10 +342,9 @@ RSpec.describe Pylon::Client do
     describe "not found errors" do
       before do
         stub_pylon_request(:get, "/accounts/999",
-          status: 404,
-          response_body: { "errors" => ["Account not found"] },
-          headers: auth_headers
-        )
+                           status: 404,
+                           response_body: { "errors" => ["Account not found"] },
+                           headers: auth_headers)
       end
 
       it "raises ResourceNotFoundError" do
@@ -366,10 +355,9 @@ RSpec.describe Pylon::Client do
     describe "validation errors" do
       before do
         stub_pylon_request(:post, "/contacts",
-          status: 422,
-          response_body: { "errors" => ["Email is invalid"] },
-          headers: auth_headers
-        )
+                           status: 422,
+                           response_body: { "errors" => ["Email is invalid"] },
+                           headers: auth_headers)
       end
 
       it "raises ValidationError" do
@@ -380,10 +368,9 @@ RSpec.describe Pylon::Client do
     describe "other API errors" do
       before do
         stub_pylon_request(:get, "/me",
-          status: 500,
-          response_body: { "errors" => ["Internal server error"] },
-          headers: auth_headers
-        )
+                           status: 500,
+                           response_body: { "errors" => ["Internal server error"] },
+                           headers: auth_headers)
       end
 
       it "raises ApiError" do

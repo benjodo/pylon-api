@@ -12,6 +12,7 @@ module Pylon
   class AuthenticationError < Error; end
   class ResourceNotFoundError < Error; end
   class ValidationError < Error; end
+
   class ApiError < Error
     attr_reader :response
 
