@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Pylon
   # Major version for breaking changes
   MAJOR = 0
@@ -9,5 +11,6 @@ module Pylon
   PRE = nil
 
   # Version string following SemVer
+  # @return [String] The current version of the gem
   VERSION = [MAJOR, MINOR, PATCH, PRE].compact.join('.')
 end

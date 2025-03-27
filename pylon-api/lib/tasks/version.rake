@@ -43,7 +43,7 @@ namespace :version do
         ### #{part == 'patch' ? 'Fixed' : 'Added'}
         - TODO: Add #{part} version changes
 
-        [#{new_version}]: https://github.com/aptible/pylon-ruby/compare/v#{Pylon::VERSION}...v#{new_version}
+        [#{new_version}]: https://github.com/benjodo/pylon-api/compare/v#{Pylon::VERSION}...v#{new_version}
 
       ENTRY
       

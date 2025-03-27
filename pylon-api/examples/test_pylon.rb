@@ -61,8 +61,8 @@ begin
   
   # List issues from the last 24 hours
   puts "\nListing issues from the last 24 hours:"
-  start_time = (Time.now.utc - 86400).iso8601  # 24 hours ago
-  end_time = Time.now.utc.iso8601
+  start_time = (Time.now.utc - 86400).strftime("%Y-%m-%dT%H:%M:%SZ")  # 24 hours ago
+  end_time = Time.now.utc.strftime("%Y-%m-%dT%H:%M:%SZ")
   
   issues, raw_response = client.list_issues(
     start_time: start_time,

@@ -1,0 +1,23 @@
+example_id                             | status | run_time        |
+-------------------------------------- | ------ | --------------- |
+./spec/pylon/client_spec.rb[1:1:1]     | passed | 0.00039 seconds |
+./spec/pylon/client_spec.rb[1:1:2]     | passed | 0.00032 seconds |
+./spec/pylon/client_spec.rb[1:2:1:1]   | passed | 0.01998 seconds |
+./spec/pylon/client_spec.rb[1:2:2:1]   | passed | 0.00536 seconds |
+./spec/pylon/client_spec.rb[1:3:1:1]   | passed | 0.00528 seconds |
+./spec/pylon/client_spec.rb[1:3:2:1]   | passed | 0.00524 seconds |
+./spec/pylon/client_spec.rb[1:4:1:1]   | passed | 0.00508 seconds |
+./spec/pylon/client_spec.rb[1:5:1:1]   | passed | 0.0053 seconds  |
+./spec/pylon/client_spec.rb[1:6:1:1:1] | passed | 0.00596 seconds |
+./spec/pylon/client_spec.rb[1:6:1:2:1] | passed | 0.00015 seconds |
+./spec/pylon/client_spec.rb[1:6:1:2:2] | passed | 0.00008 seconds |
+./spec/pylon/client_spec.rb[1:6:2:1]   | passed | 0.00754 seconds |
+./spec/pylon/client_spec.rb[1:7:1:1]   | passed | 0.005 seconds   |
+./spec/pylon/client_spec.rb[1:8:1:1]   | passed | 0.0057 seconds  |
+./spec/pylon/client_spec.rb[1:8:2:1]   | passed | 0.00519 seconds |
+./spec/pylon/client_spec.rb[1:9:1:1]   | passed | 0.00558 seconds |
+./spec/pylon/client_spec.rb[1:9:2:1]   | passed | 0.00588 seconds |
+./spec/pylon/client_spec.rb[1:10:1:1]  | passed | 0.00508 seconds |
+./spec/pylon/client_spec.rb[1:10:2:1]  | passed | 0.00499 seconds |
+./spec/pylon/client_spec.rb[1:10:3:1]  | passed | 0.00549 seconds |
+./spec/pylon/client_spec.rb[1:10:4:1]  | passed | 0.00633 seconds |
