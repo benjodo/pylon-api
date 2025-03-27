@@ -4,7 +4,10 @@
 require "pylon"
 
 # Initialize the client with your API key and enable debug mode
-client = Pylon::Client.new(api_key: ENV.fetch("PYLON_API_KEY", nil), debug: false) # Temporarily enable debug to see response structure
+client = Pylon::Client.new(
+  api_key: ENV.fetch("PYLON_API_KEY", nil),
+  debug: false
+) # Temporarily enable debug to see response structure
 
 def display_rate_limit_info(raw_response)
   return unless raw_response.respond_to?(:headers)
