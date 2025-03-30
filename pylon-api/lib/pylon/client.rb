@@ -154,6 +154,15 @@ module Pylon
       patch("/issues/#{issue_id}", body: params)
     end
 
+    # Snooze an issue until a specified time
+    #
+    # @param issue_id [String] The ID or number of the issue to snooze
+    # @param snooze_until [String] The date and time to snooze the issue until (RFC3339 format)
+    # @return [Hash] Updated issue details
+    def snooze_issue(issue_id, snooze_until:)
+      post("/issues/#{issue_id}/snooze", body: { snooze_until: snooze_until })
+    end
+
     # List all knowledge base articles with pagination
     #
     # @param page [Integer] Page number for pagination

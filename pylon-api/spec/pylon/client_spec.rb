@@ -204,6 +204,31 @@ RSpec.describe Pylon::Client do
         expect(response.headers["x-rate-limit-remaining"]).to eq("99")
       end
     end
+
+    describe "#snooze_issue" do
+      let(:issue_id) { "123" }
+      let(:snooze_until) { "2024-04-01T10:00:00Z" }
+      let(:snoozed_issue_response) do
+        {
+          "id" => issue_id,
+          "title" => "Test Issue",
+          "snoozed_until_time" => snooze_until,
+          "state" => "snoozed"
+        }
+      end
+
+      before do
+        stub_pylon_request(:post, "/issues/#{issue_id}/snooze",
+                           response_body: snoozed_issue_response,
+                           headers: auth_headers.merge(rate_limit_headers))
+      end
+
+      it "snoozes the issue until the specified time" do
+        data, response = client.snooze_issue(issue_id, snooze_until: snooze_until)
+        expect(data).to eq(snoozed_issue_response)
+        expect(response.headers["x-rate-limit-remaining"]).to eq("99")
+      end
+    end
   end
 
   describe "me" do

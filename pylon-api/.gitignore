@@ -10,3 +10,4 @@
 *.rbc
 .DS_Store
 Gemfile.lock
+.rspec_status
