@@ -2,6 +2,8 @@
 
 A Ruby client for the [Pylon API](https://docs.usepylon.com/pylon-docs/developer/api/api-reference).
 
+[![Gem Version](https://badge.fury.io/rb/pylon-api.svg)](https://badge.fury.io/rb/pylon-api)
+
 ## Installation
 
 Add this line to your application's Gemfile:
