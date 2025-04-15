@@ -19,8 +19,9 @@ Gem::Specification.new do |spec|
 
   spec.files = Dir.glob("lib/**/*") + %w[README.md LICENSE CHANGELOG.md]
   
-  spec.add_dependency "faraday", "2.12.2"
-  spec.add_dependency "faraday-multipart", "~> 1.0"
+  spec.add_dependency "faraday", "~> 1.10.4"
+  spec.add_dependency "faraday-multipart", "~> 1.0.4"
+  spec.add_dependency "faraday-retry", "~> 1.0.3"
   spec.add_development_dependency "rake", "~> 13.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "webmock", "~> 3.0"

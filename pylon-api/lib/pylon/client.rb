@@ -306,7 +306,7 @@ module Pylon
       @connection ||= Faraday.new(@base_url) do |f|
         f.request :json
         f.request :multipart
-        f.response :json
+        f.response :json, content_type: /\bjson$/
         f.response :logger if @debug
         f.adapter Faraday.default_adapter
         f.headers["Authorization"] = "Bearer #{api_key}"
@@ -336,13 +336,15 @@ module Pylon
         data = data["data"] if data.is_a?(Hash) && data.key?("data")
         [data, response]
       when 401
-        raise AuthenticationError, parse_error_message(response)
+        raise AuthenticationError, parse_error_message(response) || "Invalid API key"
       when 404
-        raise ResourceNotFoundError, parse_error_message(response)
+        raise ResourceNotFoundError, parse_error_message(response) || "Resource not found"
       when 422
-        raise ValidationError, parse_error_message(response)
+        raise ValidationError, parse_error_message(response) || "Validation error"
+      when 429
+        raise ApiError, parse_error_message(response) || "Rate limit exceeded"
       else
-        raise ApiError.new(parse_error_message(response), response)
+        raise ApiError.new(parse_error_message(response) || "Internal server error", response)
       end
     end
 
@@ -351,10 +353,12 @@ module Pylon
     # @param response [Faraday::Response] The API response
     # @return [String] Error message
     def parse_error_message(response)
-      if response.body.is_a?(Hash)
-        response.body["errors"]&.first || response.body["error"] || "HTTP #{response.status}"
-      else
-        "HTTP #{response.status}"
+      return nil unless response.body.is_a?(Hash)
+
+      if response.body["errors"].is_a?(Array) && !response.body["errors"].empty?
+        response.body["errors"].first
+      elsif response.body["error"].is_a?(String)
+        response.body["error"]
       end
     end
 
