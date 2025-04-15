@@ -14,6 +14,31 @@ RSpec.describe Pylon::Client do
     }
   end
 
+  def stub_pylon_request(method, path, response_body: {}, status: 200, query: {}, headers: {})
+    request_headers = {
+      "Accept" => "application/json",
+      "Accept-Encoding" => "gzip;q=1.0,deflate;q=0.6,identity;q=0.3",
+      "Content-Type" => "application/json",
+      "User-Agent" => "Faraday v1.10.4",
+      "Authorization" => "Bearer test_api_key"
+    }
+
+    response_headers = headers.merge(rate_limit_headers).merge("Content-Type" => "application/json")
+
+    url = "https://api.usepylon.com#{path}"
+    url += "?#{URI.encode_www_form(query)}" unless query.empty?
+
+    stub_request(method, url)
+      .with(
+        headers: request_headers
+      )
+      .to_return(
+        status: status,
+        body: response_body.to_json,
+        headers: response_headers
+      )
+  end
+
   describe "#initialize" do
     it "sets the API key" do
       expect(client.api_key).to eq(api_key)
@@ -258,22 +283,7 @@ RSpec.describe Pylon::Client do
 
   describe "tags" do
     describe "#list_tags" do
-      let(:tags_data) do
-        [
-          {
-            "id" => "tag1",
-            "value" => "bug",
-            "hex_color" => "#ff0000",
-            "object_type" => "issue"
-          },
-          {
-            "id" => "tag2",
-            "value" => "feature",
-            "hex_color" => "#00ff00",
-            "object_type" => "account"
-          }
-        ]
-      end
+      let(:tags_data) { [{ "id" => "1", "name" => "Test Tag" }] }
 
       before do
         stub_pylon_request(:get, "/tags",
@@ -290,15 +300,8 @@ RSpec.describe Pylon::Client do
     end
 
     describe "#create_tag" do
-      let(:tag_params) { { name: "feature", color: "#00ff00" } }
-      let(:tag_response) do
-        {
-          "id" => "tag1",
-          "value" => "feature",
-          "hex_color" => "#00ff00",
-          "object_type" => "issue"
-        }
-      end
+      let(:tag_params) { { name: "Test Tag", color: "#FF0000" } }
+      let(:tag_response) { { "id" => "1", "name" => "Test Tag", "color" => "#FF0000" } }
 
       before do
         stub_pylon_request(:post, "/tags",
@@ -316,7 +319,7 @@ RSpec.describe Pylon::Client do
 
   describe "teams" do
     describe "#list_teams" do
-      let(:teams_data) { [{ "id" => "team1", "name" => "Engineering" }] }
+      let(:teams_data) { [{ "id" => "1", "name" => "Engineering" }] }
 
       before do
         stub_pylon_request(:get, "/teams",
@@ -333,8 +336,8 @@ RSpec.describe Pylon::Client do
     end
 
     describe "#create_team" do
-      let(:team_params) { { name: "Engineering" } }
-      let(:team_response) { { "id" => "team1", "name" => "Engineering" } }
+      let(:team_params) { { "name" => "Engineering" } }
+      let(:team_response) { team_params.merge("id" => "1") }
 
       before do
         stub_pylon_request(:post, "/teams",
