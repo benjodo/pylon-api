@@ -329,7 +329,7 @@ module Pylon
     # @param response [Faraday::Response] The API response
     # @param model_class [Class] The model class to use for wrapping the response
     # @param collection [Boolean] Whether the response is a collection of items
-    # @return [Models::Base, Models::Collection, Array] Model, Collection, or Array containing response data and response object
+    # @return [Models::Base, Models::Collection, Array] Model, Collection, or response data array
     # @raise [AuthenticationError] If authentication fails
     # @raise [ResourceNotFoundError] If resource is not found
     # @raise [ValidationError] If request parameters are invalid
@@ -341,20 +341,40 @@ module Pylon
         puts "Response body: #{response.body.inspect}"
       end
 
-      case response.status
-      when 200..299
-        data = response.body
-        data = data["data"] if data.is_a?(Hash) && data.key?("data")
-        
-        if model_class
-          if collection
-            Models::Collection.new(data, model_class, response)
-          else
-            model_class.new(data, response)
-          end
+      handle_successful_response(response, model_class, collection) if response.status.between?(200, 299)
+      handle_error_response(response)
+    end
+
+    # Handle successful API response
+    #
+    # @param response [Faraday::Response] The API response
+    # @param model_class [Class] The model class to use for wrapping the response
+    # @param collection [Boolean] Whether the response is a collection of items
+    # @return [Models::Base, Models::Collection, Array] Wrapped response data
+    def handle_successful_response(response, model_class, collection)
+      data = response.body
+      data = data["data"] if data.is_a?(Hash) && data.key?("data")
+      
+      if model_class
+        if collection
+          Models::Collection.new(data, model_class, response)
         else
-          [data, response]
+          model_class.new(data, response)
         end
+      else
+        [data, response]
+      end
+    end
+
+    # Handle error API response
+    #
+    # @param response [Faraday::Response] The API response
+    # @raise [AuthenticationError] If authentication fails
+    # @raise [ResourceNotFoundError] If resource is not found
+    # @raise [ValidationError] If request parameters are invalid
+    # @raise [ApiError] For other API errors
+    def handle_error_response(response)
+      case response.status
       when 401
         raise AuthenticationError, parse_error_message(response) || "Invalid API key"
       when 404
@@ -388,7 +408,7 @@ module Pylon
     # @param query [Hash] Query parameters
     # @param model_class [Class] The model class to use for wrapping the response
     # @param collection [Boolean] Whether the response is a collection of items
-    # @return [Models::Base, Models::Collection, Array] Model, Collection, or Array containing response data and response object
+    # @return [Models::Base, Models::Collection, Array] Model, Collection, or response data array
     def get(path, query: {}, model_class: nil, collection: false)
       handle_response(connection.get(path, query), model_class, collection)
     end
@@ -399,7 +419,7 @@ module Pylon
     # @param body [Hash] Request body
     # @param model_class [Class] The model class to use for wrapping the response
     # @param collection [Boolean] Whether the response is a collection of items
-    # @return [Models::Base, Models::Collection, Array] Model, Collection, or Array containing response data and response object
+    # @return [Models::Base, Models::Collection, Array] Model, Collection, or response data array
     def post(path, body: {}, model_class: nil, collection: false)
       handle_response(connection.post(path, body.to_json), model_class, collection)
     end
@@ -410,7 +430,7 @@ module Pylon
     # @param body [Hash] Request body
     # @param model_class [Class] The model class to use for wrapping the response
     # @param collection [Boolean] Whether the response is a collection of items
-    # @return [Models::Base, Models::Collection, Array] Model, Collection, or Array containing response data and response object
+    # @return [Models::Base, Models::Collection, Array] Model, Collection, or response data array
     def patch(path, body: {}, model_class: nil, collection: false)
       handle_response(connection.patch(path, body.to_json), model_class, collection)
     end
@@ -420,7 +440,7 @@ module Pylon
     # @param path [String] The API endpoint path
     # @param model_class [Class] The model class to use for wrapping the response
     # @param collection [Boolean] Whether the response is a collection of items
-    # @return [Models::Base, Models::Collection, Array] Model, Collection, or Array containing response data and response object
+    # @return [Models::Base, Models::Collection, Array] Model, Collection, or response data array
     def delete(path, model_class: nil, collection: false)
       handle_response(connection.delete(path), model_class, collection)
     end

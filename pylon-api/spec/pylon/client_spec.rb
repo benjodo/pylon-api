@@ -215,10 +215,12 @@ RSpec.describe Pylon::Client do
           )
           expect(issues).to be_a(Pylon::Models::Collection)
           expect(issues.size).to eq(1)
-          expect(issues[0]).to be_a(Pylon::Models::Issue)
-          expect(issues[0].id).to eq("1")
-          expect(issues[0].title).to eq("Test Issue")
-          expect(issues[0].state).to eq("open")
+          
+          issue = issues[0]
+          expect(issue).to be_a(Pylon::Models::Issue)
+          expect(issue.id).to eq("1")
+          expect(issue.title).to eq("Test Issue")
+          expect(issue.state).to eq("open")
           expect(issues._response.headers["x-rate-limit-remaining"]).to eq("99")
         end
       end

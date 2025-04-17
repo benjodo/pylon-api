@@ -130,27 +130,42 @@ class ApiValidator
   def print_report
     puts "\n== Validation Report =="
     
-    # Check for any errors
+    print_errors
+    print_model_fields
+    save_results_to_file
+    print_summary
+  end
+
+  def print_errors
     errors = @results.select { |r| r[:status].start_with?("Error") }
-    if errors.any?
-      puts "\n❌ #{errors.size} validation(s) failed:"
-      errors.each do |error|
-        puts "- #{error[:endpoint]} (#{error[:model]}): #{error[:status]}"
-      end
+    return unless errors.any?
+
+    puts "\n❌ #{errors.size} validation(s) failed:"
+    errors.each do |error|
+      puts "- #{error[:endpoint]} (#{error[:model]}): #{error[:status]}"
     end
-    
-    # Summary of attributes per model
+  end
+
+  def print_model_fields
     puts "\nModel Field Validation:"
-    @results.select { |r| !r[:status].start_with?("Error") && !r[:object_attributes].empty? }.each do |result|
+    successful_results = @results.select do |r| 
+      !r[:status].start_with?("Error") && !r[:object_attributes].empty?
+    end
+
+    successful_results.each do |result|
       puts "- #{result[:model]} (#{result[:endpoint]}):"
       puts "  Fields: #{result[:object_attributes].join(', ')}"
       puts ""
     end
-    
-    # Save full results to JSON file
+  end
+
+  def save_results_to_file
     File.write("api_validation_results.json", JSON.pretty_generate(@results))
     puts "Detailed results saved to api_validation_results.json"
-    
+  end
+
+  def print_summary
+    errors = @results.select { |r| r[:status].start_with?("Error") }
     if errors.empty?
       puts "\n✅ All validations passed successfully!"
     else
