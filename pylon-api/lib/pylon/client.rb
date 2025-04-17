@@ -341,8 +341,11 @@ module Pylon
         puts "Response body: #{response.body.inspect}"
       end
 
-      handle_successful_response(response, model_class, collection) if response.status.between?(200, 299)
-      handle_error_response(response)
+      if response.status.between?(200, 299)
+        return handle_successful_response(response, model_class, collection)
+      else
+        handle_error_response(response)
+      end
     end
 
     # Handle successful API response
