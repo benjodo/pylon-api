@@ -5,6 +5,17 @@ require "faraday/multipart"
 require "json"
 
 require_relative "pylon/version"
+require_relative "pylon/models/base"
+require_relative "pylon/models/collection"
+require_relative "pylon/models/user"
+require_relative "pylon/models/account"
+require_relative "pylon/models/issue"
+require_relative "pylon/models/team"
+require_relative "pylon/models/tag"
+require_relative "pylon/models/attachment"
+require_relative "pylon/models/contact"
+require_relative "pylon/models/ticket_form"
+require_relative "pylon/models/article"
 require_relative "pylon/client"
 
 module Pylon

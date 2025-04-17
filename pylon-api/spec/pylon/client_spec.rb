@@ -50,6 +50,29 @@ RSpec.describe Pylon::Client do
     end
   end
 
+  describe "models" do
+    describe "Base model" do
+      it "provides attribute access" do
+        model = Pylon::Models::Base.new({"id" => "123", "name" => "Test"})
+        expect(model.id).to eq("123")
+        expect(model.name).to eq("Test")
+        expect(model["id"]).to eq("123")
+        expect(model.to_h).to eq({"id" => "123", "name" => "Test"})
+      end
+    end
+    
+    describe "Collection" do
+      it "acts as an enumerable" do
+        data = [{"id" => "1"}, {"id" => "2"}]
+        collection = Pylon::Models::Collection.new(data, Pylon::Models::Base)
+        
+        expect(collection.size).to eq(2)
+        expect(collection[0].id).to eq("1")
+        expect(collection.map(&:id)).to eq(["1", "2"])
+      end
+    end
+  end
+
   describe "rate limiting" do
     let(:rate_limit_response) do
       {
@@ -75,20 +98,6 @@ RSpec.describe Pylon::Client do
         end.to raise_error(Pylon::ApiError, "Rate limit exceeded. Please try again in 60 seconds.")
       end
     end
-
-    context "when rate limit headers are present" do
-      before do
-        stub_pylon_request(:get, "/me",
-                           response_body: { "id" => "user_1" },
-                           headers: auth_headers.merge(rate_limit_headers))
-      end
-
-      it "includes rate limit information in response" do
-        data, response = client.get_current_user
-        expect(data).to eq({ "id" => "user_1" })
-        expect(response.headers["x-rate-limit-remaining"]).to eq("99")
-      end
-    end
   end
 
   describe "accounts" do
@@ -102,10 +111,14 @@ RSpec.describe Pylon::Client do
                            headers: auth_headers.merge(rate_limit_headers))
       end
 
-      it "returns accounts list and response" do
-        data, response = client.list_accounts
-        expect(data).to eq(accounts_data)
-        expect(response.headers["x-rate-limit-remaining"]).to eq("99")
+      it "returns accounts collection" do
+        accounts = client.list_accounts
+        expect(accounts).to be_a(Pylon::Models::Collection)
+        expect(accounts.size).to eq(1)
+        expect(accounts[0]).to be_a(Pylon::Models::Account)
+        expect(accounts[0].id).to eq("1")
+        expect(accounts[0].name).to eq("Test Account")
+        expect(accounts._response.headers["x-rate-limit-remaining"]).to eq("99")
       end
     end
 
@@ -119,10 +132,12 @@ RSpec.describe Pylon::Client do
                            headers: auth_headers.merge(rate_limit_headers))
       end
 
-      it "returns account details and response" do
-        data, response = client.get_account(account_id)
-        expect(data).to eq(account_data)
-        expect(response.headers["x-rate-limit-remaining"]).to eq("99")
+      it "returns account object" do
+        account = client.get_account(account_id)
+        expect(account).to be_a(Pylon::Models::Account)
+        expect(account.id).to eq(account_id)
+        expect(account.name).to eq("Test Account")
+        expect(account._response.headers["x-rate-limit-remaining"]).to eq("99")
       end
     end
   end
@@ -139,9 +154,11 @@ RSpec.describe Pylon::Client do
       end
 
       it "creates an attachment" do
-        data, response = client.create_attachment(file)
-        expect(data).to eq(attachment_data)
-        expect(response.headers["x-rate-limit-remaining"]).to eq("99")
+        attachment = client.create_attachment(file)
+        expect(attachment).to be_a(Pylon::Models::Attachment)
+        expect(attachment.id).to eq("1")
+        expect(attachment.url).to eq("https://example.com/file.pdf")
+        expect(attachment._response.headers["x-rate-limit-remaining"]).to eq("99")
       end
     end
   end
@@ -158,9 +175,12 @@ RSpec.describe Pylon::Client do
       end
 
       it "creates a contact" do
-        data, response = client.create_contact(contact_params)
-        expect(data).to eq(contact_response)
-        expect(response.headers["x-rate-limit-remaining"]).to eq("99")
+        contact = client.create_contact(contact_params)
+        expect(contact).to be_a(Pylon::Models::Contact)
+        expect(contact.id).to eq("1")
+        expect(contact.email).to eq("test@example.com")
+        expect(contact.name).to eq("Test User")
+        expect(contact._response.headers["x-rate-limit-remaining"]).to eq("99")
       end
     end
   end
@@ -187,15 +207,24 @@ RSpec.describe Pylon::Client do
                              headers: auth_headers.merge(rate_limit_headers))
         end
 
-        it "returns issues list and response" do
-          data, response = client.list_issues(
+        # rubocop:disable RSpec/ExampleLength
+        it "returns issues collection with correctly structured objects" do
+          issues = client.list_issues(
             start_time: start_time,
             end_time: end_time,
             status: "open"
           )
-          expect(data).to eq(issues_data)
-          expect(response.headers["x-rate-limit-remaining"]).to eq("99")
+          expect(issues).to be_a(Pylon::Models::Collection)
+          expect(issues.size).to eq(1)
+          expect(issues._response.headers["x-rate-limit-remaining"]).to eq("99")
+          
+          issue = issues[0]
+          expect(issue).to be_a(Pylon::Models::Issue)
+          expect(issue.id).to eq("1")
+          expect(issue.title).to eq("Test Issue")
+          expect(issue.state).to eq("open")
         end
+        # rubocop:enable RSpec/ExampleLength
       end
 
       context "with missing parameters" do
@@ -224,9 +253,12 @@ RSpec.describe Pylon::Client do
       end
 
       it "creates an issue" do
-        data, response = client.create_issue(issue_params)
-        expect(data).to eq(issue_response)
-        expect(response.headers["x-rate-limit-remaining"]).to eq("99")
+        issue = client.create_issue(issue_params)
+        expect(issue).to be_a(Pylon::Models::Issue)
+        expect(issue.id).to eq("1")
+        expect(issue.title).to eq("New Issue")
+        expect(issue.description).to eq("Test")
+        expect(issue._response.headers["x-rate-limit-remaining"]).to eq("99")
       end
     end
 
@@ -249,9 +281,12 @@ RSpec.describe Pylon::Client do
       end
 
       it "snoozes the issue until the specified time" do
-        data, response = client.snooze_issue(issue_id, snooze_until: snooze_until)
-        expect(data).to eq(snoozed_issue_response)
-        expect(response.headers["x-rate-limit-remaining"]).to eq("99")
+        issue = client.snooze_issue(issue_id, snooze_until: snooze_until)
+        expect(issue).to be_a(Pylon::Models::Issue)
+        expect(issue.id).to eq(issue_id)
+        expect(issue.state).to eq("snoozed")
+        expect(issue.snoozed_until_time).to eq(snooze_until)
+        expect(issue._response.headers["x-rate-limit-remaining"]).to eq("99")
       end
     end
   end
@@ -273,10 +308,14 @@ RSpec.describe Pylon::Client do
                            headers: auth_headers.merge(rate_limit_headers))
       end
 
-      it "returns current user details and response" do
-        data, response = client.get_current_user
-        expect(data).to eq(user_data)
-        expect(response.headers["x-rate-limit-remaining"]).to eq("99")
+      it "returns current user object" do
+        user = client.get_current_user
+        expect(user).to be_a(Pylon::Models::User)
+        expect(user.id).to eq("user_1")
+        expect(user.email).to eq("me@example.com")
+        expect(user.name).to eq("Test User")
+        expect(user.role).to eq("admin")
+        expect(user._response.headers["x-rate-limit-remaining"]).to eq("99")
       end
     end
   end
@@ -292,10 +331,14 @@ RSpec.describe Pylon::Client do
                            headers: auth_headers.merge(rate_limit_headers))
       end
 
-      it "returns tags list and response" do
-        data, response = client.list_tags
-        expect(data).to eq(tags_data)
-        expect(response.headers["x-rate-limit-remaining"]).to eq("99")
+      it "returns tags collection" do
+        tags = client.list_tags
+        expect(tags).to be_a(Pylon::Models::Collection)
+        expect(tags.size).to eq(1)
+        expect(tags[0]).to be_a(Pylon::Models::Tag)
+        expect(tags[0].id).to eq("1")
+        expect(tags[0].name).to eq("Test Tag")
+        expect(tags._response.headers["x-rate-limit-remaining"]).to eq("99")
       end
     end
 
@@ -309,10 +352,13 @@ RSpec.describe Pylon::Client do
                            headers: auth_headers.merge(rate_limit_headers))
       end
 
-      it "creates a tag and returns response" do
-        data, response = client.create_tag(**tag_params)
-        expect(data).to eq(tag_response)
-        expect(response.headers["x-rate-limit-remaining"]).to eq("99")
+      it "creates a tag" do
+        tag = client.create_tag(**tag_params)
+        expect(tag).to be_a(Pylon::Models::Tag)
+        expect(tag.id).to eq("1")
+        expect(tag.name).to eq("Test Tag")
+        expect(tag.color).to eq("#FF0000")
+        expect(tag._response.headers["x-rate-limit-remaining"]).to eq("99")
       end
     end
   end
@@ -328,10 +374,14 @@ RSpec.describe Pylon::Client do
                            headers: auth_headers.merge(rate_limit_headers))
       end
 
-      it "returns teams list and response" do
-        data, response = client.list_teams
-        expect(data).to eq(teams_data)
-        expect(response.headers["x-rate-limit-remaining"]).to eq("99")
+      it "returns teams collection" do
+        teams = client.list_teams
+        expect(teams).to be_a(Pylon::Models::Collection)
+        expect(teams.size).to eq(1)
+        expect(teams[0]).to be_a(Pylon::Models::Team)
+        expect(teams[0].id).to eq("1")
+        expect(teams[0].name).to eq("Engineering")
+        expect(teams._response.headers["x-rate-limit-remaining"]).to eq("99")
       end
     end
 
@@ -345,10 +395,12 @@ RSpec.describe Pylon::Client do
                            headers: auth_headers.merge(rate_limit_headers))
       end
 
-      it "creates a team and returns response" do
-        data, response = client.create_team(team_params)
-        expect(data).to eq(team_response)
-        expect(response.headers["x-rate-limit-remaining"]).to eq("99")
+      it "creates a team" do
+        team = client.create_team(team_params)
+        expect(team).to be_a(Pylon::Models::Team)
+        expect(team.id).to eq("1")
+        expect(team.name).to eq("Engineering")
+        expect(team._response.headers["x-rate-limit-remaining"]).to eq("99")
       end
     end
   end
