@@ -207,7 +207,8 @@ RSpec.describe Pylon::Client do
                              headers: auth_headers.merge(rate_limit_headers))
         end
 
-        it "returns issues collection" do
+        # rubocop:disable RSpec/ExampleLength
+        it "returns issues collection with correctly structured objects" do
           issues = client.list_issues(
             start_time: start_time,
             end_time: end_time,
@@ -215,14 +216,15 @@ RSpec.describe Pylon::Client do
           )
           expect(issues).to be_a(Pylon::Models::Collection)
           expect(issues.size).to eq(1)
+          expect(issues._response.headers["x-rate-limit-remaining"]).to eq("99")
           
           issue = issues[0]
           expect(issue).to be_a(Pylon::Models::Issue)
           expect(issue.id).to eq("1")
           expect(issue.title).to eq("Test Issue")
           expect(issue.state).to eq("open")
-          expect(issues._response.headers["x-rate-limit-remaining"]).to eq("99")
         end
+        # rubocop:enable RSpec/ExampleLength
       end
 
       context "with missing parameters" do
