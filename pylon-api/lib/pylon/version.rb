@@ -4,7 +4,7 @@ module Pylon
   # Major version for breaking changes
   MAJOR = 1
   # Minor version for new features
-  MINOR = 0
+  MINOR = 1
   # Patch version for bug fixes
   PATCH = 0
   # Pre-release version (optional)

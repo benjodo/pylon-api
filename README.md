@@ -37,6 +37,20 @@ client = Pylon::Client.new(api_key: 'your_api_key')
 client = Pylon::Client.new(api_key: 'your_api_key', debug: true)
 ```
 
+### Object Model
+
+The client returns Ruby objects that provide direct access to attributes through method calls. For example:
+
+```ruby
+# Instead of accessing attributes like a hash: issue['title']
+# You can use object methods: issue.title
+
+# Collections are enumerable and can be iterated over
+issues.each do |issue|
+  puts "#{issue.id}: #{issue.title} (#{issue.status})"
+end
+```
+
 ### Examples
 
 #### Current User
@@ -44,6 +58,7 @@ client = Pylon::Client.new(api_key: 'your_api_key', debug: true)
 ```ruby
 # Get current user details
 me = client.get_current_user
+puts "Logged in as: #{me.email} (#{me.name})"
 ```
 
 #### Accounts
@@ -51,9 +66,16 @@ me = client.get_current_user
 ```ruby
 # List accounts with pagination
 accounts = client.list_accounts(page: 1, per_page: 20)
+accounts.each do |account|
+  puts "#{account.id}: #{account.name}"
+end
 
 # Get a specific account
 account = client.get_account('account_id')
+puts "Account name: #{account.name}"
+
+# Access the raw response if needed
+response = account._response
 ```
 
 #### Issues
@@ -71,11 +93,19 @@ issues = client.list_issues(
   status: 'open' # optional filter
 )
 
+# Iterate through issues
+issues.each do |issue|
+  puts "#{issue.id}: #{issue.title} (#{issue.status})"
+end
+
 # Create an issue
 issue = client.create_issue(
   title: 'New Issue',
   description: 'Issue description'
 )
+
+# Access issue properties directly
+puts "Created issue #{issue.id}: #{issue.title}"
 ```
 
 #### Teams
