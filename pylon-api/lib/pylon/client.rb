@@ -8,6 +8,20 @@ module Pylon
   #   issues = client.list_issues(start_time: '2024-03-01T00:00:00Z', end_time: '2024-03-31T23:59:59Z')
   #   issues.each { |issue| puts issue.title }
   class Client
+    # Common MIME types for file uploads
+    MIME_TYPES = {
+      ".jpg" => "image/jpeg",
+      ".jpeg" => "image/jpeg",
+      ".png" => "image/png",
+      ".gif" => "image/gif",
+      ".pdf" => "application/pdf",
+      ".doc" => "application/msword",
+      ".docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      ".xls" => "application/vnd.ms-excel",
+      ".xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      ".csv" => "text/csv",
+      ".txt" => "text/plain"
+    }
     # Base URL for the Pylon API
     BASE_URL = "https://api.usepylon.com"
 
@@ -45,10 +59,36 @@ module Pylon
 
     # Create a new attachment
     #
-    # @param file [String] The file content to upload
+    # @param file [File, String, nil] The file to upload (File object or file content)
+    # @param description [String, nil] A text description of the file
+    # @param file_url [String, nil] A URL to fetch the file from if file is not provided
     # @return [Models::Attachment] Created attachment object
-    def create_attachment(file)
-      post("/attachments", body: { file: file }, model_class: Models::Attachment)
+    # @raise [ArgumentError] If neither file nor file_url is provided
+    def create_attachment(file = nil, description: nil, file_url: nil)
+      if file.nil? && file_url.nil?
+        raise ArgumentError, "Either file or file_url must be provided"
+      end
+
+      params = {}
+      params[:description] = description if description
+      params[:file_url] = file_url if file_url
+
+      if file
+        if file.is_a?(::File) || (file.respond_to?(:path) && file.respond_to?(:read))
+          # For File objects or IO-like objects
+          params[:file] = Faraday::UploadIO.new(file, mime_type_for_file(file), File.basename(file.path))
+        else
+          # For raw content as string, create a temp file
+          temp_file = Tempfile.new(["upload", ".bin"])
+          temp_file.binmode
+          temp_file.write(file)
+          temp_file.rewind
+          params[:file] = Faraday::UploadIO.new(temp_file, "application/octet-stream")
+        end
+      end
+      
+      # Always use multipart for attachments, whether file or file_url
+      post_multipart("/attachments", params, model_class: Models::Attachment)
     end
 
     # Get details for a specific attachment
@@ -324,6 +364,17 @@ module Pylon
       end
     end
 
+    # Determine MIME type for file
+    #
+    # @param file [File] The file to determine MIME type for
+    # @return [String] The MIME type
+    def mime_type_for_file(file)
+      return "application/octet-stream" unless file.respond_to?(:path)
+
+      ext = File.extname(file.path).downcase
+      MIME_TYPES[ext] || "application/octet-stream"
+    end
+
     # Handle API response and raise appropriate errors
     #
     # @param response [Faraday::Response] The API response
@@ -425,6 +476,34 @@ module Pylon
     # @return [Models::Base, Models::Collection, Array] Model, Collection, or response data array
     def post(path, body: {}, model_class: nil, collection: false)
       handle_response(connection.post(path, body.to_json), model_class, collection)
+    end
+
+    # Make a multipart POST request for file uploads
+    #
+    # @param path [String] The API endpoint path
+    # @param params [Hash] Request parameters including file uploads
+    # @param model_class [Class] The model class to use for wrapping the response
+    # @param collection [Boolean] Whether the response is a collection of items
+    # @return [Models::Base, Models::Collection, Array] Model, Collection, or response data array
+    def post_multipart(path, params = {}, model_class: nil, collection: false)
+      # Create a connection without the default JSON content type for multipart uploads
+      multipart_conn = Faraday.new(@base_url) do |f|
+        f.request :multipart
+        # Only force multipart for file_url uploads, omit url_encoded middleware
+        f.response :json, content_type: /\bjson$/
+        f.response :logger if @debug
+        f.adapter Faraday.default_adapter
+        f.headers["Authorization"] = "Bearer #{api_key}"
+        f.headers["Accept"] = "application/json"
+      end
+      
+      # If we have a file_url but no actual file, create a dummy file part to force multipart encoding
+      if params[:file_url] && !params[:file]
+        # Create an empty file part to force multipart encoding
+        params[:_dummy] = Faraday::FilePart.new(StringIO.new(""), "application/octet-stream", "dummy")
+      end
+
+      handle_response(multipart_conn.post(path, params), model_class, collection)
     end
 
     # Make a PATCH request

@@ -6,7 +6,7 @@ module Pylon
   # Minor version for new features
   MINOR = 1
   # Patch version for bug fixes
-  PATCH = 0
+  PATCH = 1
   # Pre-release version (optional)
   PRE = nil
 

@@ -171,8 +171,18 @@ form = client.create_ticket_form(
 #### Attachments
 
 ```ruby
-# Create an attachment
+# Create an attachment from raw content
 attachment = client.create_attachment(file_content)
+
+# Create an attachment from a file
+file = File.open('document.pdf', 'rb')
+attachment = client.create_attachment(file)
+
+# Create an attachment from a URL with description
+attachment = client.create_attachment(nil, 
+  file_url: 'https://example.com/document.pdf',
+  description: 'Important document'
+)
 ```
 
 ## Error Handling
