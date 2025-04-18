@@ -3,6 +3,7 @@
 require "faraday"
 require "faraday/multipart"
 require "json"
+require "tempfile"
 
 require_relative "pylon/version"
 require_relative "pylon/models/base"

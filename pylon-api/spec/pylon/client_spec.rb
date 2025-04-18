@@ -144,21 +144,110 @@ RSpec.describe Pylon::Client do
 
   describe "attachments" do
     describe "#create_attachment" do
-      let(:file) { "file_content" }
-      let(:attachment_data) { { "id" => "1", "url" => "https://example.com/file.pdf" } }
-
-      before do
-        stub_pylon_request(:post, "/attachments",
-                           response_body: attachment_data,
-                           headers: auth_headers.merge(rate_limit_headers))
+      let(:attachment_data) { { "id" => "1", "url" => "https://example.com/file.pdf", "name" => "test.pdf" } }
+      let(:rate_limit_headers) do
+        {
+          "x-rate-limit-limit" => "100",
+          "x-rate-limit-remaining" => "99",
+          "x-rate-limit-reset" => Time.now.to_i.to_s
+        }
       end
 
-      it "creates an attachment" do
-        attachment = client.create_attachment(file)
-        expect(attachment).to be_a(Pylon::Models::Attachment)
-        expect(attachment.id).to eq("1")
-        expect(attachment.url).to eq("https://example.com/file.pdf")
-        expect(attachment._response.headers["x-rate-limit-remaining"]).to eq("99")
+      context "with file content" do
+        let(:file_content) { "file_content" }
+
+        before do
+          stub_request(:post, "https://api.usepylon.com/attachments")
+            .with(
+              headers: {
+                "Accept" => "application/json",
+                "Authorization" => "Bearer test_api_key"
+              }
+            )
+            .to_return(
+              status: 200,
+              body: attachment_data.to_json,
+              headers: { "Content-Type" => "application/json" }.merge(rate_limit_headers)
+            )
+        end
+
+        it "creates an attachment with file content" do
+          attachment = client.create_attachment(file_content)
+          expect(attachment).to be_a(Pylon::Models::Attachment)
+          expect(attachment.id).to eq("1")
+          expect(attachment.url).to eq("https://example.com/file.pdf")
+          expect(attachment.name).to eq("test.pdf")
+          expect(attachment._response.headers["x-rate-limit-remaining"]).to eq("99")
+        end
+      end
+
+      context "with file path" do
+        let(:temp_file) { Tempfile.new(["test", ".txt"]) }
+
+        before do
+          temp_file.write("test content")
+          temp_file.rewind
+
+          stub_request(:post, "https://api.usepylon.com/attachments")
+            .with(
+              headers: {
+                "Accept" => "application/json",
+                "Authorization" => "Bearer test_api_key"
+              }
+            )
+            .to_return(
+              status: 200,
+              body: attachment_data.to_json,
+              headers: { "Content-Type" => "application/json" }.merge(rate_limit_headers)
+            )
+        end
+
+        after do
+          temp_file.close
+          temp_file.unlink
+        end
+
+        it "creates an attachment with a file object" do
+          attachment = client.create_attachment(temp_file)
+          expect(attachment).to be_a(Pylon::Models::Attachment)
+          expect(attachment.id).to eq("1")
+        end
+      end
+
+      context "with file_url" do
+        let(:file_url) { "https://example.com/somefile.pdf" }
+          
+        before do
+          # Use a simpler stub that only matches on URL and headers, not body
+          # since WebMock doesn't support matching multipart form data
+          stub_request(:post, "https://api.usepylon.com/attachments")
+            .with(
+              headers: {
+                "Accept" => "application/json",
+                "Authorization" => "Bearer test_api_key"
+              }
+            )
+            .to_return(
+              status: 200,
+              body: attachment_data.to_json,
+              headers: { "Content-Type" => "application/json" }.merge(rate_limit_headers)
+            )
+        end
+
+        it "creates an attachment with a URL" do
+          attachment = client.create_attachment(nil, description: "Test file", file_url: file_url)
+          expect(attachment).to be_a(Pylon::Models::Attachment)
+          expect(attachment.id).to eq("1")
+          expect(attachment.url).to eq("https://example.com/file.pdf")
+        end
+      end
+
+      context "with missing parameters" do
+        it "raises ArgumentError when neither file nor file_url is provided" do
+          expect { client.create_attachment(nil) }.to raise_error(
+            ArgumentError, "Either file or file_url must be provided"
+          )
+        end
       end
     end
   end
