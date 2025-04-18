@@ -182,7 +182,7 @@ RSpec.describe Pylon::Client do
       end
 
       context "with file path" do
-        let(:temp_file) { Tempfile.new(['test', '.txt']) }
+        let(:temp_file) { Tempfile.new(["test", ".txt"]) }
 
         before do
           temp_file.write("test content")
@@ -223,8 +223,8 @@ RSpec.describe Pylon::Client do
           stub_request(:post, "https://api.usepylon.com/attachments")
             .with(
               headers: {
-                'Accept' => 'application/json',
-                'Authorization' => 'Bearer test_api_key'
+                "Accept" => "application/json",
+                "Authorization" => "Bearer test_api_key"
               }
             )
             .to_return(

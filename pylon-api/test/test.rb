@@ -5,12 +5,12 @@ require "bundler/setup"
 require "pylon"
 require "tempfile"
 
-if ENV['PYLON_API_KEY'].nil?
+if ENV["PYLON_API_KEY"].nil?
   puts "Error: Please set the PYLON_API_KEY environment variable"
   exit 1
 end
 
-client = Pylon::Client.new(api_key: ENV['PYLON_API_KEY'], debug: true)
+client = Pylon::Client.new(api_key: ENV["PYLON_API_KEY"], debug: true)
 
 puts "--------- Testing Pylon API Attachment Upload Methods -----------"
 
@@ -41,7 +41,7 @@ end
 # Test 3: Create attachment from file
 begin
   puts "\nTest 3: Creating attachment from file..."
-  temp_file = Tempfile.new(['test_file', '.txt'])
+  temp_file = Tempfile.new(["test_file", ".txt"])
   temp_file.write("This is content from a file object.")
   temp_file.rewind
 

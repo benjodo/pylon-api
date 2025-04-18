@@ -7,6 +7,7 @@ module Pylon
   #   client = Pylon::Client.new(api_key: 'your_api_key')
   #   issues = client.list_issues(start_time: '2024-03-01T00:00:00Z', end_time: '2024-03-31T23:59:59Z')
   #   issues.each { |issue| puts issue.title }
+  # rubocop:disable Metrics/ClassLength
   class Client
     # Common MIME types for file uploads
     MIME_TYPES = {
