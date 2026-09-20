@@ -19,7 +19,7 @@ RSpec.describe Pylon::Client do
       "Accept" => "application/json",
       "Accept-Encoding" => "gzip;q=1.0,deflate;q=0.6,identity;q=0.3",
       "Content-Type" => "application/json",
-      "User-Agent" => "Faraday v1.10.4",
+      "User-Agent" => "Faraday v#{Faraday::VERSION}",
       "Authorization" => "Bearer test_api_key"
     }
 
@@ -270,6 +270,108 @@ RSpec.describe Pylon::Client do
         expect(contact.email).to eq("test@example.com")
         expect(contact.name).to eq("Test User")
         expect(contact._response.headers["x-rate-limit-remaining"]).to eq("99")
+      end
+    end
+  end
+
+  describe "email suppressions" do
+    describe "#list_email_suppressions" do
+      let(:email) { "bounced@example.com" }
+      let(:suppression_data) do
+        [{
+          "id" => "sup_1",
+          "email" => email,
+          "reason" => "hard_bounce",
+          "created_at" => "2026-09-01T12:00:00Z",
+          "bounce_details" => "550 5.1.1 The email account does not exist"
+        }]
+      end
+
+      context "when checking a single address" do
+        before do
+          stub_pylon_request(:get, "/email-suppressions",
+                             response_body: { "data" => suppression_data,
+                                              "pagination" => { "cursor" => "", "has_next_page" => false } },
+                             query: { email: email },
+                             headers: auth_headers.merge(rate_limit_headers))
+        end
+
+        # rubocop:disable RSpec/ExampleLength
+        it "returns a collection of email suppressions" do
+          suppressions = client.list_email_suppressions(email: email)
+          expect(suppressions).to be_a(Pylon::Models::Collection)
+          expect(suppressions.size).to eq(1)
+          expect(suppressions._response.headers["x-rate-limit-remaining"]).to eq("99")
+
+          suppression = suppressions[0]
+          expect(suppression).to be_a(Pylon::Models::EmailSuppression)
+          expect(suppression.id).to eq("sup_1")
+          expect(suppression.email).to eq(email)
+          expect(suppression.reason).to eq("hard_bounce")
+          expect(suppression.created_at).to eq("2026-09-01T12:00:00Z")
+          expect(suppression.bounce_details).to eq("550 5.1.1 The email account does not exist")
+        end
+        # rubocop:enable RSpec/ExampleLength
+      end
+
+      context "when the address is not suppressed" do
+        before do
+          stub_pylon_request(:get, "/email-suppressions",
+                             response_body: { "data" => [],
+                                              "pagination" => { "cursor" => "", "has_next_page" => false } },
+                             query: { email: email },
+                             headers: auth_headers.merge(rate_limit_headers))
+        end
+
+        it "returns an empty collection" do
+          suppressions = client.list_email_suppressions(email: email)
+          expect(suppressions).to be_a(Pylon::Models::Collection)
+          expect(suppressions.size).to eq(0)
+        end
+      end
+
+      context "when listing without filters" do
+        before do
+          stub_pylon_request(:get, "/email-suppressions",
+                             response_body: { "data" => suppression_data },
+                             headers: auth_headers.merge(rate_limit_headers))
+        end
+
+        it "omits nil query parameters" do
+          suppressions = client.list_email_suppressions
+          expect(suppressions.size).to eq(1)
+          expect(a_request(:get, "https://api.usepylon.com/email-suppressions")).to have_been_made.once
+        end
+      end
+
+      context "when paginating with cursor and limit" do
+        before do
+          stub_pylon_request(:get, "/email-suppressions",
+                             response_body: { "data" => suppression_data },
+                             query: { cursor: "abc123", limit: 50 },
+                             headers: auth_headers.merge(rate_limit_headers))
+        end
+
+        it "sends cursor and limit as query parameters" do
+          suppressions = client.list_email_suppressions(cursor: "abc123", limit: 50)
+          expect(suppressions.size).to eq(1)
+        end
+      end
+    end
+
+    describe "#delete_email_suppression" do
+      let(:suppression_id) { "sup_1" }
+
+      before do
+        stub_pylon_request(:delete, "/email-suppressions/#{suppression_id}",
+                           response_body: { "request_id" => "req_1" },
+                           headers: auth_headers.merge(rate_limit_headers))
+      end
+
+      it "deletes the suppression and returns the response data" do
+        data, response = client.delete_email_suppression(suppression_id)
+        expect(data).to eq({ "request_id" => "req_1" })
+        expect(response.status).to eq(200)
       end
     end
   end

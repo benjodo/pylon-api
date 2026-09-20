@@ -81,7 +81,7 @@ response = account._response
 #### Issues
 
 ```ruby
-# List issues (requires time range, max 30 days)
+# List issues (requires time range, max 365 days)
 start_time = Time.now.utc - 86400 # 24 hours ago
 end_time = Time.now.utc
 
@@ -89,19 +89,19 @@ issues = client.list_issues(
   start_time: start_time.iso8601,
   end_time: end_time.iso8601,
   page: 1,
-  per_page: 20,
-  status: 'open' # optional filter
+  per_page: 20
 )
 
 # Iterate through issues
 issues.each do |issue|
-  puts "#{issue.id}: #{issue.title} (#{issue.status})"
+  puts "#{issue.id}: #{issue.title} (#{issue.state})"
 end
 
-# Create an issue
+# Create an issue (title and body_html are required by the API)
 issue = client.create_issue(
   title: 'New Issue',
-  description: 'Issue description'
+  body_html: '<p>Issue description</p>',
+  requester_email: 'customer@example.com'
 )
 
 # Access issue properties directly
@@ -183,6 +183,31 @@ attachment = client.create_attachment(nil,
   file_url: 'https://example.com/document.pdf',
   description: 'Important document'
 )
+```
+
+#### Email Suppressions
+
+Pylon stops sending email to an address once it hard bounces or is suppressed manually. Use these methods to check and clear suppressions.
+
+```ruby
+# Check whether a single address is suppressed
+suppressions = client.list_email_suppressions(email: 'user@example.com')
+
+if suppressions.size.zero?
+  puts 'not suppressed'
+else
+  suppression = suppressions.first
+  puts "#{suppression.email} suppressed (#{suppression.reason}) at #{suppression.created_at}"
+  puts suppression.bounce_details if suppression.bounce_details
+end
+
+# List suppressions, most recent first, using the API's cursor pagination
+page = client.list_email_suppressions(limit: 100)
+pagination = page._response.body['pagination']
+next_page = client.list_email_suppressions(cursor: pagination['cursor']) if pagination['has_next_page']
+
+# Remove a suppression so Pylon resumes sending to the address
+client.delete_email_suppression(suppression.id)
 ```
 
 ## Error Handling

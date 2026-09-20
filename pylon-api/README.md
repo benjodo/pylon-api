@@ -55,23 +55,33 @@ account, response = client.get_account('account_id')
 #### Issues
 
 ```ruby
-# List issues (requires time range, max 30 days)
+# List issues (requires time range, max 365 days)
 start_time = Time.now.utc - 86400 # 24 hours ago
 end_time = Time.now.utc
 
-issues, response = client.list_issues(
+issues = client.list_issues(
   start_time: start_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
   end_time: end_time.strftime("%Y-%m-%dT%H:%M:%SZ"),
   page: 1,
-  per_page: 20,
-  status: 'open' # optional filter
+  per_page: 20
 )
 
-# Create an issue
-issue, response = client.create_issue(
+# Create an issue (title and body_html are required by the API)
+issue = client.create_issue(
   title: 'New Issue',
-  description: 'Issue description'
+  body_html: '<p>Issue description</p>',
+  requester_email: 'customer@example.com'
 )
+```
+
+#### Email Suppressions
+
+```ruby
+# Check whether a single address is suppressed (empty collection means not suppressed)
+suppressions = client.list_email_suppressions(email: 'user@example.com')
+
+# Remove a suppression
+client.delete_email_suppression(suppressions.first.id) unless suppressions.size.zero?
 ```
 
 #### Teams

@@ -152,7 +152,30 @@ module Pylon
       post("/custom_fields", body: params)
     end
 
-    # Lists issues within a specified time range (max 30 days)
+    # List email suppressions, most recently suppressed first
+    #
+    # Pass +email+ to check a single address. An empty collection means the
+    # address is not suppressed. Uses the API's cursor-based pagination.
+    #
+    # @param email [String, nil] Only return the suppression for this address, if one exists
+    # @param cursor [String, nil] Cursor for the next page of results
+    # @param limit [Integer, nil] Number of suppressions to fetch (API default 100, max 1000)
+    # @return [Models::Collection<Models::EmailSuppression>] Collection of email suppression objects
+    def list_email_suppressions(email: nil, cursor: nil, limit: nil)
+      query = { email: email, cursor: cursor, limit: limit }.compact
+      get("/email-suppressions", query: query,
+          model_class: Models::EmailSuppression, collection: true)
+    end
+
+    # Remove an email suppression so Pylon resumes sending to the address
+    #
+    # @param suppression_id [String] The ID of the email suppression to remove
+    # @return [Array(Hash, Faraday::Response)] Response data and raw response
+    def delete_email_suppression(suppression_id)
+      delete("/email-suppressions/#{suppression_id}")
+    end
+
+    # Lists issues within a specified time range (max 365 days)
     #
     # @param start_time [String] Start time in RFC3339 format
     # @param end_time [String] End time in RFC3339 format

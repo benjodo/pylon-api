@@ -17,6 +17,7 @@ require_relative "pylon/models/attachment"
 require_relative "pylon/models/contact"
 require_relative "pylon/models/ticket_form"
 require_relative "pylon/models/article"
+require_relative "pylon/models/email_suppression"
 require_relative "pylon/client"
 
 module Pylon
