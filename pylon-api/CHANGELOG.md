@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.0] - 2026-09-20
+
+### Added
+- `list_email_suppressions` for `GET /email-suppressions` with optional `email`, `cursor`, and `limit` query parameters. Pass `email` to check a single address; an empty collection means it is not suppressed.
+- `delete_email_suppression` for `DELETE /email-suppressions/{id}`
+- `Pylon::Models::EmailSuppression` model (`id`, `email`, `reason`, `created_at`, `bounce_details`)
+
+### Changed
+- Documentation only: README examples now use `body_html` when creating issues and note the 365-day window for `list_issues`. No existing method signatures, paths, or return types changed.
+
 ## [1.1.1] - 2025-04-18
 
 ### Fixed
